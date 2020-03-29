@@ -131,6 +131,14 @@ lazy_static! {
     });
 }
 
+// Since this is considered a private implementation detail, the 
+// doc(hidden) attribute is added to hide it from the generated documentation.
+#[doc(hidden)] 
+pub fn _print(args: fmt::Arguments) {
+    use core::fmt::Write;
+    WRITER.lock().write_fmt(args).unwrap();
+}
+
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ($crate::vga_buffer::_print(format_args!($($arg)*)));
@@ -142,12 +150,41 @@ macro_rules! println {
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
-// Since this is considered a private implementation detail, the 
-// doc(hidden) attribute is added to hide it from the generated documentation.
-#[doc(hidden)] 
-pub fn _print(args: fmt::Arguments) {
-    use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+
+// TESTING //
+
+// TODO: Maybe move tests to a submodule.
+
+#[cfg(test)] 
+use crate::{serial_print, serial_println}; // Import only needed when testing.
+
+#[test_case]
+fn test_println_simple() {
+    serial_print!("test_println... ");
+    println!("test_println_simple output");
+    serial_println!("[ok]");
 }
 
+#[test_case]
+fn test_println_many() {
+    serial_print!("test_println_many... ");
+    for _ in 0..200 {
+        println!("test_println_many output");
+    }
+    serial_println!("[ok]");
+}
+
+#[test_case]
+fn test_println_output() {
+    serial_print!("test_println_output... ");
+
+    let s = "Some test string that fits on a single line";
+    println!("{}", s);
+    for (i, c) in s.chars().enumerate() {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        assert_eq!(char::from(screen_char.ascii_char), c);
+    }
+
+    serial_println!("[ok]");
+}
 
