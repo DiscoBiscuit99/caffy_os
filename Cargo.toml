@@ -29,6 +29,10 @@ panic = "abort" # Disable stack unwinding on panic.
 name = "should_panic"
 harness = false
 
+[[test]]
+name = "stack_overflow"
+harness = false
+
 [package.metadata.bootimage]
 test-args = [
 	"-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",

@@ -8,7 +8,9 @@
 use core::panic::PanicInfo;
 use caffy_os::{print, println};
 
+pub mod serial;
 pub mod interrupts;
+pub mod gdt;
 
 #[cfg(test)]
 #[panic_handler]
@@ -30,8 +32,6 @@ pub extern "C" fn _start() -> ! {
     print!("Hello, World{}", "!");
 
     caffy_os::init();
-
-    x86_64::instructions::interrupts::int3();
 
     #[cfg(test)]
     test_main();
